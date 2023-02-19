@@ -1,5 +1,5 @@
 # React TypeScript App
-## This repository contains a responsive web application built with React and TypeScript.
+## This repository contains a responsive web application built with React and TypeScript and MUI.
 
 To run the app on your device, please follow these instructions:
 
