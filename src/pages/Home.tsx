@@ -11,7 +11,7 @@ function Home(): React.ReactElement {
       {userExists && <Typography variant='h2'>Hello, {user.name}!</Typography>}
       {!userExists && (
         <Typography variant='h2'>
-          Hello, you need to <Link to={'/'}>log in</Link>.
+          Hello, you need to <Link to={'/auth'}>log in</Link>.
         </Typography>
       )}
     </Container>

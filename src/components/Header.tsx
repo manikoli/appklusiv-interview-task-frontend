@@ -36,8 +36,6 @@ const URL = process.env.REACT_APP_API_URL ?? ''
 function Header(): React.ReactElement {
   const user = JSON.parse(localStorage.getItem('user') ?? '{}')
 
-  const [submit, setSubmit] = useState(false)
-
   const [alertState, setAlertState] = useState(AlertStates.success)
   const [alertMessage, setAlertMessage] = useState('first')
   const [alertOpen, setAlertOpen] = useState(false)
@@ -89,32 +87,25 @@ function Header(): React.ReactElement {
     alertOpen ? setAlertOpen(false) : setAlertOpen(true)
   }
 
-  useEffect(() => {
-    if (submit) {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      }
-      void fetch(`${URL}/logout`, requestOptions)
-        .then(async (response) => await response.json())
-        .then((jsonData) => {
-          if (jsonData.data !== undefined) {
-            handleAlert(AlertStates.success, jsonData.message, false)
-            handleAlertOpen()
-            localStorage.removeItem('user')
-            setIsLogged(false)
-            navigate('/auth')
-          } else {
-            handleAlert(AlertStates.error, jsonData.message, false)
-            setSubmit(false)
-          }
-        })
-    }
-  }, [isLogged, submit])
-
   const handleLogout = (): void => {
-    setSubmit(true)
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    }
+    void fetch(`${URL}/logout`, requestOptions)
+      .then(async (response) => await response.json())
+      .then((jsonData) => {
+        if (jsonData.data !== null) {
+          handleAlert(AlertStates.success, jsonData.message, false)
+          handleAlertOpen()
+          localStorage.removeItem('user')
+          setIsLogged(false)
+          navigate('/auth')
+        } else {
+          handleAlert(AlertStates.error, jsonData.message, false)
+        }
+      })
   }
 
   const navItems = [
@@ -143,7 +134,7 @@ function Header(): React.ReactElement {
   return (
     <ThemeProvider theme={THEME_MONT}>
       <AppBar sx={styles.appBar}>
-        <Toolbar sx={styles.conatiner}>
+        <Toolbar sx={styles.container}>
           <Button color='inherit' size='large' sx={styles.homeButton} onClick={goHome}>
             <Typography fontSize={24}>HOME</Typography>
           </Button>
@@ -176,7 +167,7 @@ function Header(): React.ReactElement {
                 </Typography>
               </Button>
               <Menu
-                id='basic-menu'
+                id='basicMenu'
                 anchorEl={anchorEl}
                 open={open}
                 onClose={handleAnchorClose}
@@ -233,7 +224,7 @@ const styles = {
     backgroundColor: '#380974',
     boxShadow: 'none',
   },
-  conatiner: {
+  container: {
     justifyContent: 'space-between',
   },
   homeButton: {
