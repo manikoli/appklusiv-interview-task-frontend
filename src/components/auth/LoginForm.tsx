@@ -9,10 +9,10 @@ import { type LoginFormData, type FormProps } from './AuthModal'
 import { emailValid, passwordValid, PasswordValidationResponse } from '../../common/validators'
 import { AlertStates } from '../common/Alert'
 
-const URL = process.env.REACT_APP_API_URL ?? ''
+const URL = process.env.REACT_APP_API_URL ?? 'https://fallback-api-url.com'
 
 function LoginForm(props: FormProps): React.ReactElement {
-  const [submit, setSubmit] = useState(false)
+  const [disableSubmit, setDisableSubmit] = useState(false)
 
   const [emailIsValid, setEmailValid] = useState(false)
   const [emailErrorText, setEmailErrorText] = useState('')
@@ -28,40 +28,46 @@ function LoginForm(props: FormProps): React.ReactElement {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = event.target
     setLoginFormData((prevState) => ({ ...prevState, [name]: value }))
+    if (name === 'email') {
+      handleEmailError(value)
+    }
+    if (name === 'password') {
+      handlePasswordError(value)
+    }
   }
 
   useEffect(() => {
-    setSubmit(submit)
-  }, [submit])
-
-  useEffect(() => {
-    if (submit) {
-      if (emailIsValid && passwordIsValid) {
-        const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(loginFormData),
-        }
-        void fetch(`${URL}/login`, requestOptions)
-          .then(async (response) => await response.json())
-          .then((jsonData) => {
-            if (jsonData.data !== undefined) {
-              localStorage.setItem('user', JSON.stringify(jsonData.data))
-              props.handleAlert(AlertStates.success, jsonData.message, true)
-            } else {
-              props.handleAlert(AlertStates.error, jsonData.message, false)
-              setSubmit(false)
-            }
-          })
-      }
+    if (emailIsValid && passwordIsValid) {
+      setDisableSubmit(false)
     }
-  }, [emailIsValid, passwordIsValid, submit])
+  }, [emailIsValid, passwordIsValid])
 
   const handleLogin = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
-    setSubmit(true)
+
+    setDisableSubmit(true)
+
     handleEmailError(loginFormData.email)
     handlePasswordError(loginFormData.password)
+
+    if (emailIsValid && passwordIsValid) {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginFormData),
+      }
+      void fetch(`${URL}/login`, requestOptions)
+        .then(async (response) => await response.json())
+        .then((jsonData) => {
+          if (jsonData.data !== null) {
+            localStorage.setItem('user', JSON.stringify(jsonData.data))
+            props.handleAlert(AlertStates.success, jsonData.message, true)
+          } else {
+            props.handleAlert(AlertStates.error, jsonData.message, false)
+            setDisableSubmit(false)
+          }
+        })
+    }
   }
 
   const handleEmailError = (value: string, error = 'Email is not valid'): void => {
@@ -134,7 +140,7 @@ function LoginForm(props: FormProps): React.ReactElement {
             color='secondary'
             type='submit'
             sx={styles.input}
-            disabled={submit}
+            disabled={disableSubmit}
           >
             Log in
           </Button>

@@ -9,10 +9,10 @@ import { emailValid, passwordValid, PasswordValidationResponse } from '../../com
 import { type RegisterFormData, type FormProps } from './AuthModal'
 import { AlertStates } from '../common/Alert'
 
-const URL = process.env.REACT_APP_API_URL ?? ''
+const URL = process.env.REACT_APP_API_URL ?? 'https://fallback-api-url.com'
 
 function RegisterForm(props: FormProps): React.ReactElement {
-  const [submit, setSubmit] = useState(false)
+  const [disableSubmit, setDisableSubmit] = useState(false)
 
   const [nameIsValid, setNameValid] = useState(false)
   const [nameErrorText, setNameErrorText] = useState('')
@@ -30,38 +30,38 @@ function RegisterForm(props: FormProps): React.ReactElement {
   })
 
   useEffect(() => {
-    setSubmit(submit)
-  }, [submit])
-
-  useEffect(() => {
-    if (submit) {
-      if (nameIsValid && emailIsValid && passwordIsValid) {
-        const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(registerFormData),
-        }
-        void fetch(`${URL}/register`, requestOptions)
-          .then(async (response) => await response.json())
-          .then((jsonData) => {
-            if (jsonData.data !== undefined) {
-              localStorage.setItem('user', JSON.stringify(jsonData.data))
-              props.handleAlert(AlertStates.success, jsonData.message, true)
-            } else {
-              props.handleAlert(AlertStates.error, jsonData.message, false)
-              setSubmit(false)
-            }
-          })
-      }
+    if (nameIsValid && emailIsValid && passwordIsValid) {
+      setDisableSubmit(false)
     }
-  }, [emailIsValid, passwordIsValid, submit])
+  }, [nameIsValid, emailIsValid, passwordIsValid])
 
   const handleRegister = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
-    setSubmit(true)
+
+    setDisableSubmit(true)
+
     handleNameError(registerFormData.name)
     handleEmailError(registerFormData.email)
     handlePasswordError(registerFormData.password)
+
+    if (nameIsValid && emailIsValid && passwordIsValid) {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registerFormData),
+      }
+      void fetch(`${URL}/register`, requestOptions)
+        .then(async (response: Response) => await response.json())
+        .then((jsonData) => {
+          if (jsonData.data !== null) {
+            localStorage.setItem('user', JSON.stringify(jsonData.data))
+            props.handleAlert(AlertStates.success, jsonData.message, true)
+          } else {
+            props.handleAlert(AlertStates.error, jsonData.message, false)
+            setDisableSubmit(false)
+          }
+        })
+    }
   }
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -127,7 +127,7 @@ function RegisterForm(props: FormProps): React.ReactElement {
             Sign up
           </Typography>
           <TextField
-            id='outlined-basic'
+            id='registerName'
             label='Full Name'
             variant='outlined'
             color='secondary'
@@ -139,7 +139,7 @@ function RegisterForm(props: FormProps): React.ReactElement {
             error={!nameIsValid && nameErrorText !== ''}
           />
           <TextField
-            id='outlined-basic'
+            id='registerEmail'
             label='Email'
             variant='outlined'
             color='secondary'
@@ -152,7 +152,7 @@ function RegisterForm(props: FormProps): React.ReactElement {
             error={!emailIsValid && emailErrorText !== ''}
           />
           <TextField
-            id='outlined-basic'
+            id='registerPassword'
             label='Password'
             variant='outlined'
             color='secondary'
@@ -170,7 +170,7 @@ function RegisterForm(props: FormProps): React.ReactElement {
             color='secondary'
             type='submit'
             sx={styles.input}
-            disabled={submit}
+            disabled={disableSubmit}
           >
             Sign up
           </Button>

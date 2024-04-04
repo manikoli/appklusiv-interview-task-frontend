@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 function Home(): React.ReactElement {
   const user: any = JSON.parse(localStorage.getItem('user') ?? '{}')
   const userExists = user.name !== undefined
-  console.log(user, userExists, 'HOME')
+
   return (
     <Container sx={styles.container}>
       {userExists && <Typography variant='h2'>Hello, {user.name}!</Typography>}

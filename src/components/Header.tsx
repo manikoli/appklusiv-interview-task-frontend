@@ -90,7 +90,6 @@ function Header(): React.ReactElement {
   }
 
   useEffect(() => {
-    console.log('herasdasdsadasdase?')
     if (submit) {
       const requestOptions = {
         method: 'POST',
